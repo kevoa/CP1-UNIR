@@ -30,20 +30,11 @@ pipeline{
                     steps {
                         sh 'python3 -m pytest test/unit'
                     }
-                    post {
-                        always {
-                            junit "**/TEST-*.xml"
-                        }
-                    }
+
                 }
                 stage('4.2 Pruebas de servicio') {
                     steps {
                         sh 'python3 -m pytest test/rest'
-                    }
-                    post {
-                        always {
-                            junit "**/TEST-*.xml"
-                        }
                     }
                 }
             }
@@ -52,6 +43,7 @@ pipeline{
     post {
         always {
             echo 'Fin del Pipeline'
+            junit "**/TEST-*.xml"
         }
         failure {
             echo 'El pipeline falló'
