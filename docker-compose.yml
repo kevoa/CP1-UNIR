@@ -9,6 +9,7 @@ services:
       - .:/usr/src/app
     environment:
       - WIREMOCK_URL=http://wiremock_service:8080
+      - FLASK_URL=http://python-app:5000
     networks:
       - devops_network
     depends_on:
