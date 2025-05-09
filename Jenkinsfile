@@ -1,6 +1,6 @@
 pipeline{
     agent {
-        label 'ssh-agent'
+        label 'agent1'
     }
     stages {
         stage('1. Descargar repositorio.') {
