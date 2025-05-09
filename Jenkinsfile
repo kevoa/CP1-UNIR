@@ -33,6 +33,9 @@ pipeline {
         stage('4. Ejecución en paralelo.') {
             parallel {
                 stage('4.1 Pruebas unitarias') {
+                    agent {
+                        label 'agent1'
+                    }
                     steps {
                         sh 'mkdir -p reports' // Asegura que el directorio exista en el workspace del agente
                         // Ejecuta pruebas unitarias en paralelo y genera un reporte JUnit XML
@@ -42,6 +45,9 @@ pipeline {
                     }
                 }
                 stage('4.2 Pruebas de servicio') {
+                    agent {
+                        label 'agent1'
+                    }
                     steps {
                         sh 'mkdir -p reports' // Asegura que el directorio exista en el workspace del agente
                         // Ejecuta pruebas de servicio en paralelo y genera un reporte JUnit XML
