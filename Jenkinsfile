@@ -56,7 +56,7 @@ pipeline {
     post {
         always {
             echo 'Fin del Pipeline'
-            archiveArtifacts artifacts: 'reports/*.xml', allowEmptyArchive: true
+            // archiveArtifacts artifacts: 'reports/*.xml', allowEmptyArchive: true
         }
         failure {
             // Se ejecuta solo si el pipeline falla
