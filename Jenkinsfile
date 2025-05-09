@@ -20,7 +20,7 @@ pipeline{
         stage('3. Etapa service...') {
             steps {
                 echo 'Etapa service...'
-                sh 'python3 -m pytest test/rest junitxml=TEST-rest-sequential.xml'
+                sh 'python3 -m pytest test/rest --junitxml=TEST-rest-sequential.xml'
                 echo 'Pruebas de servicio realizadas con exito'
             }
         }
