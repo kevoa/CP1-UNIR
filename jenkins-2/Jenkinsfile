@@ -17,7 +17,7 @@ pipeline {
             }
             steps {
                 echo 'Lanzando pruebas unitarias...'
-                sh 'echo "whoami"'
+                sh 'whoami'
                 sh 'python3 -m pytest test/unit --junitxml=reports/TEST-unit-sequential.xml'
                 echo 'Pruebas unitarias realizadas con exito.'
             }
@@ -28,7 +28,7 @@ pipeline {
             }
             steps {
                 echo 'Etapa service...'
-                sh 'echo "whoami"'
+                sh 'whoami'
                 sh 'python3 -m pytest test/rest --junitxml=reports/TEST-rest-sequential.xml'
                 echo 'Pruebas de servicio realizadas con exito'
             }
@@ -41,7 +41,7 @@ pipeline {
                     }
                     steps {
                         sh 'mkdir -p reports' 
-                        sh 'echo "whoami"'
+                        sh 'whoami'
                         sh 'python3 -m pytest test/unit --junitxml=reports/TEST-unit-parallel.xml'
 
                     }
@@ -52,7 +52,7 @@ pipeline {
                     }
                     steps {
                         sh 'mkdir -p reports' 
-                        sh 'echo "whoami"'
+                        sh 'whoami'
                         sh 'python3 -m pytest test/rest --junitxml=reports/TEST-rest-parallel.xml'
                     }
                 }
