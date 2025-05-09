@@ -1,0 +1,63 @@
+services:
+  # Servicio para python 
+  python-app:
+    build: . 
+    container_name: practica_flask_mock_app
+    ports:
+      - "5000:5000" 
+    volumes:
+      - .:/usr/src/app
+    environment:
+      - WIREMOCK_URL=http://wiremock_service:8080
+    networks:
+      - devops_network
+    depends_on:
+      - wiremock_service
+    tty: true 
+  
+  # Servicio para wiremock
+  wiremock_service:
+    image: wiremock/wiremock:latest
+    container_name: mi_practica_wiremock
+    ports:
+      - "8081:8080"
+    volumes:
+      - ./test/wiremock/mappings:/home/wiremock/mappings
+    command: ["--verbose"]
+    networks:
+      - devops_network
+  
+  # Servicio de Jenkins
+  jenkins:
+    image: jenkins/jenkins:lts-jdk17
+    ports:
+      - 8082:8080
+      - 50000:50000
+    container_name: jenkins
+    privileged: true
+    volumes:
+      - jenkins_data:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - devops_network
+
+  # Servicio para agentes en jenkins
+  agent:
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: agent 
+    privileged: true
+    expose:
+      - 22
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKIw5RZOdVuaorUL7zdJB6SaZe3s5fkRJaVjq6NODJje
+    networks:
+      - devops_network
+
+networks:
+  devops_network:
+    driver: bridge
+
+volumes:
+  jenkins_data: {}
