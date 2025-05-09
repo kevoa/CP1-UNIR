@@ -13,28 +13,47 @@ pipeline{
         stage('2. Etapa Unit prueba unitaria...') {
             steps {
                 echo 'Lanzando pruebas unitarias...'
-                sh 'python3 -m pytest test/unit --junitxml=reports/TEST-unit-sequential.xml'
+                sh 'python3 -m pytest test/unit'
                 echo 'Pruebas unitarias realizadas con exito.'
+            }
+            post {
+                always {
+                    junit 'reports/TEST-unit-sequential.xml'
+                }
             }
         }
         stage('3. Etapa service...') {
             steps {
                 echo 'Etapa service...'
-                sh 'python3 -m pytest test/rest --junitxml=TEST-rest-sequential.xml'
+                sh 'python3 -m pytest test/rest'
                 echo 'Pruebas de servicio realizadas con exito'
+            }
+            post {
+                always {
+                    junit 'reports/TEST-rest-sequential.xml'
+                }
             }
         }
         stage('4. Ejecución en paralelo.') {
             parallel {
                 stage('4.1 Pruebas unitarias') {
                     steps {
-                        sh 'python3 -m pytest test/unit --junitxml=reports/TEST-unit-parallel.xml'
+                        sh 'python3 -m pytest test/unit'
                     }
-
+                post {
+                    always {
+                        junit 'reports/TEST-unit-parallel.xml'
+                    }
+                }
                 }
                 stage('4.2 Pruebas de servicio') {
                     steps {
-                        sh 'python3 -m pytest test/rest --junitxml=reports/TEST-rest-parallel.xml'
+                        sh 'python3 -m pytest test/rest'
+                    }
+                }
+                post {
+                    always {
+                        junit 'reports/TEST-rest-parallel.xml'
                     }
                 }
             }
@@ -43,7 +62,6 @@ pipeline{
     post {
         always {
             echo 'Fin del Pipeline'
-            junit "reports/TEST-*.xml"
         }
         failure {
             echo 'El pipeline falló'
