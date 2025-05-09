@@ -1,0 +1,68 @@
+pipeline {
+    agent none
+    stages {
+        stage('1. Descargar repositorio.') {
+            agent {
+                label 'agent1'
+            }
+            steps {
+                echo 'Descargando repositorio '
+                sh 'ls -la' 
+                sh 'mkdir -p reports' 
+            }
+        }
+        stage('2. Etapa Unit prueba unitaria...') {
+            agent {
+                label 'agent-unit-sequential'
+            }
+            steps {
+                echo 'Lanzando pruebas unitarias...'
+                sh 'python3 -m pytest test/unit --junitxml=reports/TEST-unit-sequential.xml'
+                echo 'Pruebas unitarias realizadas con exito.'
+            }
+        }
+        stage('3. Etapa service...') {
+            agent {
+                label 'agent-rest-sequential'
+            }
+            steps {
+                echo 'Etapa service...'
+                sh 'python3 -m pytest test/rest --junitxml=reports/TEST-rest-sequential.xml'
+                echo 'Pruebas de servicio realizadas con exito'
+            }
+        }
+        stage('4. Ejecución en paralelo.') {
+            parallel {
+                stage('4.1 Pruebas unitarias') {
+                    agent {
+                        label 'agent-rest-sequential'
+                    }
+                    steps {
+                        sh 'mkdir -p reports' 
+                        sh 'python3 -m pytest test/unit --junitxml=reports/TEST-unit-parallel.xml'
+
+                    }
+                }
+                stage('4.2 Pruebas de servicio') {
+                    agent {
+                        label 'agent-rest-parallel'
+                    }
+                    steps {
+                        sh 'mkdir -p reports' 
+                        sh 'python3 -m pytest test/rest --junitxml=reports/TEST-rest-parallel.xml'
+                    }
+                }
+            }
+        }
+    }
+    post {
+        always {
+            echo 'Fin del Pipeline'
+            archiveArtifacts artifacts: 'reports/*.xml', allowEmptyArchive: true
+        }
+        failure {
+            echo 'El pipeline falló'
+        }
+
+    }
+}
