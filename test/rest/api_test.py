@@ -5,9 +5,12 @@ from urllib.request import urlopen
 
 import pytest
 
-BASE_URL = os.getenv('FLASK_URL')
-BASE_URL_MOCK = os.getenv('WIREMOCK_URL')
-DEFAULT_TIMEOUT = 2  # in secs
+PYTHON_APP_URL_DEFAULT = 'http://python-app:5000' # Nombre de servicio y puerto interno
+WIREMOCK_URL_DEFAULT = 'http://wiremock_service:8080' # Nombre de servicio y puerto interno
+
+BASE_URL = os.environ.get('PYTHON_APP_URL', PYTHON_APP_URL_DEFAULT)
+BASE_URL_MOCK = os.environ.get('WIREMOCK_URL', WIREMOCK_URL_DEFAULT)
+DEFAULT_TIMEOUT = 10  # in secs
 
 @pytest.mark.api
 class TestApi(unittest.TestCase):

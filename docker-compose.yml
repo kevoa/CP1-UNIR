@@ -53,6 +53,8 @@ services:
       - 22
     environment:
       - JENKINS_AGENT_SSH_PUBKEY=ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKIw5RZOdVuaorUL7zdJB6SaZe3s5fkRJaVjq6NODJje
+      - WIREMOCK_URL=http://wiremock_service:8080
+      - FLASK_URL=http://python-app:5000
     networks:
       - devops_network
 
