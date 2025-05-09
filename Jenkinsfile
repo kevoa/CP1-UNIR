@@ -1,41 +1,60 @@
 pipeline{
-    agent any 
+    agent {
+        label 'ssh-agent'
+    }
     stages {
-        stage('1. Crear y ejecutar un pipeline simple, una sola etapa con un “echo”') {
+        stage('1. Descargar repositorio.') {
             steps {
-                echo 'Empecemos con la práctica 1!'
+                echo 'Descargando repositorio '
+                checkout scm
+                sh 'echo "ls -la"'
             }
         }
-        stage('2. Añadir un comando git para traer todo el código fuente del repositorio') {
+        stage('2. Etapa Unit prueba unitaria...') {
             steps {
-                echo 'Pulling repositorio...'
-                git url: 'https://github.com/kevoa/CP1-UNIR', branch: 'master'
+                echo 'Lanzando pruebas unitarias...'
+                sh 'python3 -m pytest test/unit'
+                echo 'Pruebas unitarias realizadas con exito.'
             }
         }
-        stage('3. Verificar que el código se ha descargado mediante comando dir (o ls –la)') {
+        stage('3. Etapa service...') {
             steps {
-                echo 'Verificando la descarga del repositorio...'
-                sh 'ls -la'
-                echo 'Verificación realizada'
+                echo 'Etapa service...'
+                sh 'python3 -m pytest test/rest'
+                echo 'Pruebas de servicio realizadas con exito'
             }
         }
-        stage('4. Verificar cuál es el espacio de trabajo (echo %WORKSPACE% o echo $WORKSPACE)') {
-            steps {
-                echo 'Verificando cual es mi espacio de trabajo...'
-                sh 'echo "$WORKSPACE"'
-            }
-        }
-        stage('5. Añadir etapa “Build” (que no hace nada realmente)') {
-            steps {
-                echo 'Etapa Build...'
-                echo 'Esta etapa es para fines didácticos.'
+        stage('4. Ejecución en paralelo.') {
+            parallel {
+                stage('4.1 Pruebas unitarias') {
+                    steps {
+                        sh 'python3 -m pytest test/unit'
+                    }
+                    post {
+                        always {
+                            junit "**/TEST-*.xml"
+                        }
+                    }
+                }
+                stage('4.2 Pruebas de servicio') {
+                    steps {
+                        sh 'python3 -m pytest test/rest'
+                    }
+                    post {
+                        always {
+                            junit "**/TEST-*.xml"
+                        }
+                    }
+                }
             }
         }
     }
-
     post {
         always {
-            echo 'Fin del Pipeline CI de jenkins para el caso practico 1 - Jenkins 1.'
+            echo 'Fin del Pipeline'
+        }
+        failure {
+            echo 'El pipeline falló'
         }
     }
 }
