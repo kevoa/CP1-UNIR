@@ -26,10 +26,10 @@ pipeline {
                     echo 'Iniciando pruebas de servicio secuencial...'
                     try {
                         echo 'Limpiando entorno en caso de ser necesario...'
-                        sh 'sudo docker compose -f docker-compose.yml down --volumes --remove-orphans || true'
+                        sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans || true'
 
                         echo 'Construyendo entorno para pruebas python-app y wiremock...'
-                        sh 'sudo docker compose -f docker-compose.yml up -d --build python-app wiremock_service'
+                        sh 'docker compose -f docker-compose.yml up -d --build python-app wiremock_service'
 
                         echo 'Esperando a que los servicios se inicien...'
                         sh 'sleep 20'
@@ -45,7 +45,7 @@ pipeline {
                         currentBuild.result = 'FAILURE'
                     } finally {
                         echo 'Deteniendo y eliminando contenedores de prueba (service secuencial) para un workspace limpio...'
-                        sh 'sudo docker compose -f docker-compose.yml down --volumes --remove-orphans|| true'
+                        sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans|| true'
                     }
                 }
             }
@@ -69,11 +69,11 @@ pipeline {
                         echo 'Iniciando pruebas de servicio en paralelo'
                             try {
                                 echo 'Limpiando entorno en caso de ser necesario...'
-                                sh 'sudo docker compose -f docker-compose.yml down --volumes --remove-orphans || true'
+                                sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans || true'
 
 
                                 echo 'Construyendo entorno para pruebas python-app y wiremock...'
-                                sh 'sudo docker compose -f docker-compose.yml up -d --build python-app wiremock_service'
+                                sh 'docker compose -f docker-compose.yml up -d --build python-app wiremock_service'
 
                                 echo 'Esperando a que los servicios se inicien'
                                 sh 'sleep 20'
@@ -88,7 +88,7 @@ pipeline {
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo 'Deteniendo y eliminando contenedores de prueba (service parallel) para un workspace limpio...'
-                                sh 'sudo docker compose -f docker-compose.yml down --volumes --remove-orphans|| true'
+                                sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans|| true'
                             }
                         }
                     }

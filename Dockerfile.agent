@@ -1,4 +1,4 @@
-# Dockerfile.agent
+# Dockerfile.agent (Versión para intentar permisos directos para el usuario jenkins)
 FROM jenkins/ssh-agent:jdk17
 
 USER root
@@ -19,7 +19,6 @@ RUN apt-get update && \
 RUN install -m 0755 -d /etc/apt/keyrings && \
     curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
     chmod a+r /etc/apt/keyrings/docker.asc && \
-    # Usamos lsb_release -cs para el codename, es bastante estándar
     echo \
       "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
       $(lsb_release -cs) stable" | \
@@ -31,7 +30,6 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
     rm -rf /var/lib/apt/lists/*
 
 # Paso 3: Configurar permisos para que el usuario 'jenkins' pueda usar Docker
-# (El usuario 'jenkins' ya existe en la imagen base)
 RUN if ! getent group docker > /dev/null; then \
         echo "Creando el grupo 'docker' (como grupo normal)..."; \
         addgroup docker; \
@@ -40,9 +38,3 @@ RUN if ! getent group docker > /dev/null; then \
     fi && \
     echo "Añadiendo usuario 'jenkins' al grupo 'docker'..." && \
     usermod -aG docker jenkins
-
-# La imagen base 'jenkins/ssh-agent' está configurada para que el
-# servicio SSH se ejecute y acepte conexiones para el usuario 'jenkins'.
-# No es necesario un 'USER jenkins' explícito al final aquí, a menos que
-# quieras cambiar el usuario por defecto para cualquier comando 'RUN' subsiguiente
-# o el 'WORKDIR', etc. Para el agente SSH, la configuración de la imagen base es suficiente.
