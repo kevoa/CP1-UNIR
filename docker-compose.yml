@@ -2,24 +2,19 @@ services:
   # Servicio para python 
   python-app:
     build: . 
-    container_name: practica_flask_mock_app
     ports:
       - "5000:5000" 
     volumes:
       - .:/usr/src/app
-    environment:
-      - WIREMOCK_URL=http://wiremock_service:8080
-      - FLASK_URL=http://python-app:5000
     networks:
       - devops_network
     depends_on:
       - wiremock_service
-    tty: true 
+    # tty: true 
   
   # Servicio para wiremock
   wiremock_service:
     image: wiremock/wiremock:latest
-    container_name: mi_practica_wiremock
     ports:
       - "8081:8080"
     volumes:
@@ -41,6 +36,8 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - devops_network
+    depends_on:
+      - agent
 
   # Servicio para agentes en jenkins
   agent:
@@ -49,6 +46,8 @@ services:
       dockerfile: Dockerfile.agent
     container_name: agent 
     privileged: true
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock 
     expose:
       - 22
     environment:

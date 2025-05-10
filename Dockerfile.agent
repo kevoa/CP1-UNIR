@@ -1,10 +1,48 @@
+# Dockerfile.agent
 FROM jenkins/ssh-agent:jdk17
 
-# COPY --chown=jenkins mykey "${JENKINS_AGENT_HOME}"/.ssh/mykey
 USER root
 
+# Paso 1: Actualizar e instalar Python, pytest y prerrequisitos generales
 RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-pytest && \
+    apt-get install -y --no-install-recommends \
+        python3 \
+        python3-pip \
+        python3-pytest \
+        ca-certificates \
+        curl \
+        gnupg \
+        lsb-release && \
     rm -rf /var/lib/apt/lists/*
 
+# Paso 2: Configurar el repositorio de Docker e instalar Docker CLI y Docker Compose Plugin
+RUN install -m 0755 -d /etc/apt/keyrings && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc && \
+    chmod a+r /etc/apt/keyrings/docker.asc && \
+    # Usamos lsb_release -cs para el codename, es bastante estándar
+    echo \
+      "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+      $(lsb_release -cs) stable" | \
+      tee /etc/apt/sources.list.d/docker.list > /dev/null && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        docker-ce-cli \
+        docker-compose-plugin && \
+    rm -rf /var/lib/apt/lists/*
 
+# Paso 3: Configurar permisos para que el usuario 'jenkins' pueda usar Docker
+# (El usuario 'jenkins' ya existe en la imagen base)
+RUN if ! getent group docker > /dev/null; then \
+        echo "Creando el grupo 'docker' (como grupo normal)..."; \
+        addgroup docker; \
+    else \
+        echo "El grupo 'docker' ya existe."; \
+    fi && \
+    echo "Añadiendo usuario 'jenkins' al grupo 'docker'..." && \
+    usermod -aG docker jenkins
+
+# La imagen base 'jenkins/ssh-agent' está configurada para que el
+# servicio SSH se ejecute y acepte conexiones para el usuario 'jenkins'.
+# No es necesario un 'USER jenkins' explícito al final aquí, a menos que
+# quieras cambiar el usuario por defecto para cualquier comando 'RUN' subsiguiente
+# o el 'WORKDIR', etc. Para el agente SSH, la configuración de la imagen base es suficiente.

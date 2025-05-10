@@ -16,5 +16,7 @@ ENV FLASK_APP=app.api
 ENV FLASK_ENV=development
 ENV FLASK_RUN_HOST=0.0.0.0
 ENV FLASK_RUN_PORT=5000
+ENV WIREMOCK_URL=http://wiremock_service:8080
+ENV FLASK_URL=http://python-app:5000
 
 CMD [ "python", "-m", "flask", "run" ]
