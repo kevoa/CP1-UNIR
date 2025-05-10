@@ -3,7 +3,7 @@ services:
   python-app:
     build: . 
     ports:
-      - "5000:5000" 
+      - "5000" 
     volumes:
       - .:/usr/src/app
     networks:
@@ -16,7 +16,7 @@ services:
   wiremock_service:
     image: wiremock/wiremock:latest
     ports:
-      - "8081:8080"
+      - "8080"
     volumes:
       - ./test/wiremock/mappings:/home/wiremock/mappings
     command: ["--verbose"]

@@ -24,28 +24,40 @@ pipeline {
             steps {
                 script {
                     echo 'Iniciando pruebas de servicio secuencial...'
+                    def FLASK_HOST_PORT_SEQ = ''
+                    def WIREMOCK_HOST_PORT_SEQ = ''
                     try {
                         echo 'Limpiando entorno en caso de ser necesario...'
-                        sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans || true'
+                        sh 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml down --volumes --remove-orphans || true'
 
                         echo 'Construyendo entorno para pruebas python-app y wiremock...'
-                        sh 'docker compose -f docker-compose.yml up -d --build python-app wiremock_service'
+                        sh 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml up -d --build python-app wiremock_service'
 
                         echo 'Esperando a que los servicios se inicien...'
                         sh 'sleep 20'
+
+                        FLASK_HOST_PORT_SEQ = sh(script: 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml port python-app 5000', returnStdout: true).trim().split(':')[1]
+                        WIREMOCK_HOST_PORT_SEQ = sh(script: 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml port wiremock_service 8080', returnStdout: true).trim().split(':')[1]
 
                         echo 'Creando directorio para reportes en el workspace...'
                         sh 'mkdir -p reports'
 
                         echo 'Ejecutando pruebas de servicio (Secuencial)...'
                         sh 'python3 -m pytest test/rest --junitxml=reports/TEST-rest-sequential.xml'
+
+                        sh """
+                            FLASK_TEST_URL="http://localhost:${FLASK_HOST_PORT_SEQ}" \
+                            WIREMOCK_TEST_URL="http://localhost:${WIREMOCK_HOST_PORT_SEQ}" \
+                            python3 -m pytest test/rest --junitxml=reports/TEST-rest-sequential.xml
+                        """
+                        
                         echo 'Pruebas de servicio secuencial ejecutadas con éxito.'
                     } catch (e) {
                         echo 'Error en pruebas de servicio secuencial'
                         currentBuild.result = 'FAILURE'
                     } finally {
                         echo 'Deteniendo y eliminando contenedores de prueba (service secuencial) para un workspace limpio...'
-                        sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans|| true'
+                        sh 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml down --volumes --remove-orphans || true'
                     }
                 }
             }
@@ -69,11 +81,10 @@ pipeline {
                         echo 'Iniciando pruebas de servicio en paralelo'
                             try {
                                 echo 'Limpiando entorno en caso de ser necesario...'
-                                sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans || true'
-
+                                sh 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml down --volumes --remove-orphans || true'
 
                                 echo 'Construyendo entorno para pruebas python-app y wiremock...'
-                                sh 'docker compose -f docker-compose.yml up -d --build python-app wiremock_service'
+                                sh 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml up -d --build python-app wiremock_service'
 
                                 echo 'Esperando a que los servicios se inicien'
                                 sh 'sleep 20'
@@ -88,7 +99,7 @@ pipeline {
                                 currentBuild.result = 'FAILURE'
                             } finally {
                                 echo 'Deteniendo y eliminando contenedores de prueba (service parallel) para un workspace limpio...'
-                                sh 'docker compose -f docker-compose.yml down --volumes --remove-orphans|| true'
+                                sh 'docker compose -f docker-compose.yml -f docker-compose.test-override.yml down --volumes --remove-orphans || true'
                             }
                         }
                     }
