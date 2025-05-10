@@ -1,4 +1,4 @@
-# Dockerfile.agent (Versión para intentar permisos directos para el usuario jenkins)
+# Dockerfile.agent (Haciendo que el usuario 'jenkins' tenga UID 0)
 FROM jenkins/ssh-agent:jdk17
 
 USER root
@@ -29,12 +29,21 @@ RUN install -m 0755 -d /etc/apt/keyrings && \
         docker-compose-plugin && \
     rm -rf /var/lib/apt/lists/*
 
-# Paso 3: Configurar permisos para que el usuario 'jenkins' pueda usar Docker
-RUN if ! getent group docker > /dev/null; then \
-        echo "Creando el grupo 'docker' (como grupo normal)..."; \
-        addgroup docker; \
-    else \
-        echo "El grupo 'docker' ya existe."; \
-    fi && \
-    echo "Añadiendo usuario 'jenkins' al grupo 'docker'..." && \
-    usermod -aG docker jenkins
+# Paso 3: Modificar el usuario 'jenkins' para que tenga UID 0 (root)
+# El usuario 'jenkins' ya existe en la imagen base.
+# -o permite UID no único (aunque en este caso lo hacemos único como root)
+RUN echo "Modificando usuario 'jenkins' para que tenga UID 0 (root)..." && \
+    usermod -u 0 -o jenkins && \
+    echo "Modificando grupo primario de 'jenkins' para que tenga GID 0 (root)..." && \
+    groupmod -g 0 -o jenkins && \
+    # Asegurar que el home directory siga perteneciendo al "nuevo" jenkins (ahora root)
+    # Esto podría no ser estrictamente necesario si el home ya es accesible por root,
+    # pero es una buena medida.
+    chown -R jenkins:jenkins /home/jenkins
+
+# No es necesario añadir 'jenkins' al grupo 'docker' si 'jenkins' ahora ES root.
+# No es necesario instalar 'sudo' ni modificar 'sudoers'.
+
+# La imagen base 'jenkins/ssh-agent' está configurada para que el
+# servicio SSH se ejecute y acepte conexiones para el usuario 'jenkins'.
+# Ahora, ese usuario 'jenkins' será UID 0.
