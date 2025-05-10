@@ -1,0 +1,11 @@
+services:
+  python-app:
+    # Al definir 'ports' como una lista vacía aquí,
+    # anulamos cualquier definición de 'ports' del docker-compose.yml principal
+    # para este servicio cuando se usa este override.
+    # Resultado: python-app NO expondrá puertos al HOST cuando el pipeline lo levante.
+    ports: []
+
+  wiremock_service:
+    # Misma lógica para wiremock_service.
+    ports: []
